@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGISTRO</title>
+    <!-- ======================== CSS ======================== -->
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <!-- ================== JS EXTERNO ================== -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+</head>
+
+<body>
+    <div class="card">
+        <!-- ================== INSTRUCCIONES CÁMARA ================== -->
+        <div class="contentCard">
+            <div class="text">
+                <h1>Bienvenido</h1>
+                <h2>BIBLIOPASS</h2>
+                
+                <p class="first">Para registrar tu asistencia, por favor sigue las siguientes instrucciones:</p>
+                <p><ion-icon name="heart-circle"></ion-icon>Escanea el código QR de tu credencial en MindBox.</p>
+                <p><ion-icon name="heart-circle"></ion-icon>Espera a que tu nombre aparezca en la pantalla.</p>
+            </div>
+
+            <div class="camara">
+                <video class="video" autoplay playsinline></video>
+            </div>
+            <canvas class="canvas"></canvas>
+        </div>
+
+        <!-- ================== LOGOTIPOS INSTITUCIONALES ================== -->
+        <div class="logos">
+            <div class="tecnm">
+                <img src="./assets/images/Logo Tecnm.png" alt="Logo Tecnm" class="logo">
+                <img src="./assets/images/Letra Tecnm.png" alt="Letra Tecnm" class="inst">
+            </div>
+
+            <img src="./assets/images/Logo ITJ.png" alt="Logo Tec" class="logoTec" >
+            
+            <div class="sep">
+                <img src="./assets/images/Logo SEP.png" alt="Logo SEP" class="logoSep">
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== FUNCIONALIDAD ======================== -->
+    <script src="./assets/js/function.js"></script>
+    <!-- ======================== ICONOS ION-ICON ======================== -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>
