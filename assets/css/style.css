@@ -3,6 +3,7 @@
     /* ========== COLORS ========== */
     --background: rgb(27, 57, 107, 0.7);
     --lightWhite: rgba(255, 255, 255, 0.5);
+    --lightBlue: rgba(129, 177, 228, 0.5);
     --darkBlue: #1B396B;
     --white: #FFFFFF;
     /* ========== FONTS ========== */
@@ -156,6 +157,12 @@ canvas { display: none; }
     padding: 2em 1em;
     padding-bottom: 0;
     text-align: center;
+    cursor: pointer;
+}
+
+.cardOpt:hover {
+  box-shadow: 0px 0px 20px 1px var(--lightBlue);
+  transform: translateY(-3%);
 }
 
 .cardOpt img { 

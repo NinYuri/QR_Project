@@ -5,7 +5,7 @@ let found = false;
 
 const content = document.querySelector('.contentCard');
 
-// Accede a la cámara
+// ACCESO A LA CÁMARA
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }})
     .then(stream => {
         video.srcObject = stream;
@@ -57,7 +57,7 @@ function scanQR() {
                                 </div>
 
                                 <div class="cardOpt">
-                                    <div class="cardTitle third">Revisión tesina</div>
+                                    <div class="cardTitle third">Revisión Tesina</div>
                                     <img src="./assets/images/3rd.png" alt="Third Opt">
                                 </div>
 
@@ -67,21 +67,44 @@ function scanQR() {
                                 </div>
 
                                 <div class="cardOpt">
-                                    <div class="cardTitle">Sala de computación</div>
+                                    <div class="cardTitle">Sala de Computación</div>
                                     <img src="./assets/images/5th.png" alt="Fifth Opt">
                                 </div>                                
                             </div>
                         </div>                        
                     `;
                     
-                    /*content.innerHTML = `
-                        <div class="card">
-                            <h2>Datos del Estudiante</h2>
-                            <p><strong>Nombre:</strong> ${data.contenido.nombre}</p>
-                            <p><strong>Matrícula:</strong> ${data.contenido.matricula}</p>
-                            <p><strong>Carrera:</strong> ${data.contenido.carrera}</p>
-                        </div>
-                    `;*/
+                    // Seleccionar todas las tarjetas de opción
+                    const options = document.querySelectorAll('.cardOpt');
+
+                    options.forEach(option => {
+                        option.addEventListener('click', () => {
+                            const tipo = option.querySelector('.cardTitle').textContent.trim();
+                            const fecha = new Date();
+                            const payload = {
+                                fecha: fecha.toLocaleDateString('es-MX'),
+                                nombre: data.contenido.nombre,
+                                noControl: data.contenido.matricula,
+                                carrera: data.contenido.carrera,
+                                tipo: tipo                                
+                            };
+
+                            console.log("Registrando", payload);
+
+                            fetch('http://localhost:3000/api/guardar-registro', {
+                                method: 'POST',
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            })
+                            .then(res => res.json())
+                            .then(res => {
+                                console.log("Registro guardado correctamente");
+                            })
+                            .catch(err => {
+                                console.log("Error al guardar el registro: ", err);
+                            });
+                        });
+                    });
                 })
                 .catch(err => {
                     console.error("Error al obtener datos: ", err);
