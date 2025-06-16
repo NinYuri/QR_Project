@@ -85,8 +85,10 @@ function scanQR() {
                             try {
                                 const tipo = option.querySelector('.cardTitle').textContent.trim();
                                 const fecha = new Date();
+                                const hora = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
                                 const payload = {
                                     fecha: fecha.toLocaleDateString('es-MX'),
+                                    hora: hora,
                                     nombre: data.contenido.nombre,
                                     noControl: data.contenido.matricula,
                                     carrera: data.contenido.carrera,
@@ -280,8 +282,12 @@ function scanQR() {
                                 if(!response.ok) throw new Error("Error al guardar el registro");
 
                                 const result = await response.json();
-                                found = false;
                                 console.log("Registro guardado: ", result);
+                                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                                // Reiniciar escaneo
+                                found = false;
+                                requestAnimationFrame(scanQR);                              
                             } catch (error) {
                                 console.error("Error:", error);
                                 content.innerHTML = `
