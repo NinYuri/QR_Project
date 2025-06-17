@@ -1,44 +1,36 @@
-const video = document.querySelector('.video');
-const canvas = document.querySelector('.canvas');
-const ctx = canvas.getContext('2d');
-let found = false;
-
 const content = document.querySelector('.contentCard');
+const input = document.querySelector('.scanner');
 
-// ACCESO A LA CÁMARA
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }})
-    .then(stream => {
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);    // Requerido para iOS
-        requestAnimationFrame(scanQR);
-    });
+let scannedCode = '';
+let scanTimeout;
 
-function scanQR() {
-    if(video.readyState === video.HAVE_ENOUGH_DATA && !found) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;        
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, canvas.width, canvas.height, {
-            inversionAttempts: "dontInvert",
-        });
+// ESCANEO DE CÓDIGOS QR
+input.addEventListener('input', () => {
+    clearTimeout(scanTimeout);
+    scannedCode = input.value.trim();
+    console.log("Código escaneado: ", scannedCode);
 
-        if(code) {
-            found = true;
-            const url = code.data;
+    // Esperar un poco por si manda un ENTER
+    scanTimeout = setTimeout(() => {
+        if(scannedCode !== '') {
+            processScan(scannedCode);
+            input.value = '';
+        }
+    }, 300);
+});
 
-            // Petición HTTP al backend
-            fetch(`http://localhost:3000/api/leer-qr?url=${encodeURIComponent(url)}`)
-                .then(response => {
-                    if(!response.ok) throw new Error("No se pudo consultar el backend");
-                    return response.json();
-                })
-                .then(data => {
-                    console.log("Datos del servidor: ", data);
 
-                    content.innerHTML = '';
-                    content.innerHTML = `
+function processScan(url) {
+    console.log("Código escaneado: ", scannedCode);
+    // Petición HTTP al backend
+    fetch(`http://localhost:3000/api/leer-qr?url=${encodeURIComponent(url)}`)
+        .then(response => {
+            if(!response.ok) throw new Error("No se pudo consultar el backend");
+            return response.json();
+        })
+        .then(data => {
+            content.innerHTML = '';
+            content.innerHTML = `
                         <div class="optionsCard">
                             <div class="title">
                                 <h1>¡Hola ${data.contenido.nombre.split(" ")[0]}!</h1>
@@ -72,32 +64,32 @@ function scanQR() {
                                 </div>                                
                             </div>
                         </div>                        
-                    `;
+            `;
                     
-                    // Seleccionar todas las tarjetas de opción
-                    const options = document.querySelectorAll('.cardOpt');
+            // Seleccionar todas las tarjetas de opción
+            const options = document.querySelectorAll('.cardOpt');
 
-                    options.forEach(option => {
-                        option.addEventListener('click', async (e) => {
-                            e.preventDefault();     // Prevenir recarga
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                            try {
-                                const tipo = option.querySelector('.cardTitle').textContent.trim();
-                                const fecha = new Date();
-                                const hora = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
-                                const payload = {
-                                    fecha: fecha.toLocaleDateString('es-MX'),
-                                    hora: hora,
-                                    nombre: data.contenido.nombre,
-                                    noControl: data.contenido.matricula,
-                                    carrera: data.contenido.carrera,
-                                    tipo: tipo                                
-                                };
+            options.forEach(option => {
+                option.addEventListener('click', async (e) => {
+                    e.preventDefault();     // Prevenir recarga
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
 
-                                // Mostrar loader
-                                content.innerHTML = '';
-                                content.innerHTML = `
+                    const tipo = option.querySelector('.cardTitle').textContent.trim();
+                    const fecha = new Date();
+                    const hora = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+                    const payload = {
+                        fecha: fecha.toLocaleDateString('es-MX'),
+                        hora: hora,
+                        nombre: data.contenido.nombre,
+                        noControl: data.contenido.matricula,
+                        carrera: data.contenido.carrera,
+                        tipo: tipo                                
+                    };
+
+                    // Mostrar loader
+                    content.innerHTML = '';
+                    content.innerHTML = `
                                     <div class="contentLoader">
                                         <svg
                                             aria-label="loader being flipped clockwise and circled by three white curves fading in and out"
@@ -270,41 +262,79 @@ function scanQR() {
                                             </g>
                                         </svg>
                                     </div>
-                                `;
+                    `;
 
-                                // Enviar registro
-                                const response = await fetch('http://localhost:3000/api/guardar-registro', {
-                                    method: 'POST',
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify(payload)
-                                });
-
-                                if(!response.ok) throw new Error("Error al guardar el registro");
-
-                                const result = await response.json();
-                                console.log("Registro guardado: ", result);
-                                await new Promise(resolve => setTimeout(resolve, 3000));
-
-                                // Reiniciar escaneo
-                                found = false;
-                                requestAnimationFrame(scanQR);  
-                                location.reload();                            
-                            } catch (error) {
-                                console.error("Error:", error);
-                                content.innerHTML = `
-                                    <h1>Error: ${error.message}</h1>
-                                    <button class="btn" onclick="location.reload()">Reintentar</button>
-                                `;
-                            }                           
+                    // Enviar registro
+                    try {
+                        const response = await fetch('http://localhost:3000/api/guardar-registro', {
+                            method: 'POST',
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
                         });
-                    });
-                })
-                .catch(async err => {
-                    await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
-                    console.error("Error al obtener datos: ", err);
-                    await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+
+                        if(!response.ok) throw new Error("Error al guardar el registro");
+                        const result = await response.json();
+
+                        // Reiniciar escaneo
+                        setTimeout(() => {
+                            location.reload(); 
+                            input.focus();
+                            Toast('success', 'BIBLIOPASS' + '\n' + '\n' + '¡Registro exitoso! Puedes pasar.');
+                        }, 3000);                                                           
+                    } catch (error) {
+                        console.error("Error:", error);
+                        content.innerHTML = `
+                            <div class="error">
+                                <h1>Error</h1>
+                                <h2>CÓDIGO QR INCORRECTO.</h2>
+                                <h3>ENTRA A TU CREDENCIAL ACTUAL EN MINDBOX.</h3>
+                                <button class="btn" onclick="location.reload()">REINTENTAR</button>
+                            <div>
+                        `;
+                    }                           
                 });
-        }
-    }
-    if(!found) requestAnimationFrame(scanQR);
+            });
+        })
+        .catch(err => {
+            content.innerHTML = `
+                <div class="error">
+                    <h1>Error</h1>
+                    <h2>CÓDIGO QR INCORRECTO.</h2>
+                    <h3>ENTRA A TU CREDENCIAL ACTUAL EN MINDBOX.</h3>
+                    <button class="btn" onclick="location.reload()">REINTENTAR</button>
+                <div>
+            `;
+        });
+}
+
+// Inicializar el foco en el input
+window.addEventListener('click', () => input.focus());
+window.addEventListener('keydown', () => input.focus());
+
+// Enfocar al cargar
+window.onload = () => input.focus();
+
+
+// MENSAJE ALERTA DE ERROR
+function Toast(icon, titulo) {
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-right',
+      iconColor: 'white',
+      customClass: {
+        popup: 'colored-toast'
+      },
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+    },
+    });
+  
+    Toast.fire({
+      icon: icon,
+      title: titulo
+    });
 }
