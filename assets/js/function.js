@@ -287,7 +287,8 @@ function scanQR() {
 
                                 // Reiniciar escaneo
                                 found = false;
-                                requestAnimationFrame(scanQR);                              
+                                requestAnimationFrame(scanQR);  
+                                location.reload();                            
                             } catch (error) {
                                 console.error("Error:", error);
                                 content.innerHTML = `
