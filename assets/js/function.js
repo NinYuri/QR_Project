@@ -45,7 +45,7 @@ function processScan(url) {
 
                                 <div class="cardOpt">
                                     <div class="cardTitle">Revisión de libro a domicilio</div>
-                                    <img src="./assets/images/2nd.png" alt="Second Opt">
+                                    <img src="./assets/images/5th.png" alt="Second Opt">
                                 </div>
 
                                 <div class="cardOpt">
@@ -55,12 +55,12 @@ function processScan(url) {
 
                                 <div class="cardOpt">
                                     <div class="cardTitle">Consulta de revista / periódico</div>
-                                    <img src="./assets/images/4th.png" alt="Fourth Opt">
+                                    <img src="./assets/images/2nd.png" alt="Fourth Opt">
                                 </div>
 
                                 <div class="cardOpt">
-                                    <div class="cardTitle">Sala de Computación</div>
-                                    <img src="./assets/images/5th.png" alt="Fifth Opt">
+                                    <div class="cardTitle third">Sala de Computación</div>
+                                    <img src="./assets/images/4th.png" alt="Fifth Opt">
                                 </div>                                
                             </div>
                         </div>                        
