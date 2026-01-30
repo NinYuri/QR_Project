@@ -1,103 +1,15 @@
 const content = document.querySelector('.contentCard');
 const input = document.querySelector('.scanner');
 
-let scannedCode = '';
-let scanTimeout;
-
-// ESCANEO DE CÓDIGOS QR
-input.addEventListener('input', () => {
-    clearTimeout(scanTimeout);
-    scannedCode = input.value.trim();
-    console.log("Código escaneado: ", scannedCode);
-
-    // Esperar un poco por si manda un ENTER
-    scanTimeout = setTimeout(() => {
-        if(scannedCode !== '') {
-            processScan(scannedCode);
-            input.value = '';
-        }
-    }, 300);
-});
-
-
-function processScan(url) {
-    console.log("Código escaneado: ", scannedCode);
-    // Petición HTTP al backend
-    fetch(`http://localhost:3000/api/leer-qr?url=${encodeURIComponent(url)}`)
-        .then(response => {
-            if(!response.ok) throw new Error("No se pudo consultar el backend");
-            return response.json();
-        })
-        .then(data => {
-            content.innerHTML = '';
-            content.innerHTML = `
-                        <div class="optionsCard">
-                            <div class="title">
-                                <h1>¡Hola ${data.contenido.nombre.split(" ")[0]}!</h1>
-                                <h2>¿QUÉ DESEAS HACER HOY?</h2>
-                            </div>
-
-                            <div class="options">
-                                <div class="cardOpt">
-                                    <div class="cardTitle">Revisión de libro en sala</div>
-                                    <img src="./assets/images/1st.png" alt="First Opt">
-                                </div>
-
-                                <div class="cardOpt">
-                                    <div class="cardTitle">Revisión de libro a domicilio</div>
-                                    <img src="./assets/images/5th.png" alt="Second Opt">
-                                </div>
-
-                                <div class="cardOpt">
-                                    <div class="cardTitle third">Revisión Tesina</div>
-                                    <img src="./assets/images/3rd.png" alt="Third Opt">
-                                </div>
-
-                                <div class="cardOpt">
-                                    <div class="cardTitle">Consulta de revista / periódico</div>
-                                    <img src="./assets/images/2nd.png" alt="Fourth Opt">
-                                </div>
-
-                                <div class="cardOpt">
-                                    <div class="cardTitle third">Sala de Computación</div>
-                                    <img src="./assets/images/4th.png" alt="Fifth Opt">
-                                </div>                                
-                            </div>
-                        </div>                        
-            `;
-                    
-            // Seleccionar todas las tarjetas de opción
-            const options = document.querySelectorAll('.cardOpt');
-
-            options.forEach(option => {
-                option.addEventListener('click', async (e) => {
-                    e.preventDefault();     // Prevenir recarga
-                    e.stopPropagation();
-                    e.stopImmediatePropagation();
-
-                    const tipo = option.querySelector('.cardTitle').textContent.trim();
-                    const fecha = new Date();
-                    const hora = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
-                    const payload = {
-                        fecha: fecha.toLocaleDateString('es-MX'),
-                        hora: hora,
-                        nombre: data.contenido.nombre,
-                        noControl: data.contenido.matricula,
-                        carrera: data.contenido.carrera,
-                        tipo: tipo                                
-                    };
-
-                    // Mostrar loader
-                    content.innerHTML = '';
-                    content.innerHTML = `
-                                    <div class="contentLoader">
-                                        <svg
-                                            aria-label="loader being flipped clockwise and circled by three white curves fading in and out"
-                                            role="img"
-                                            height="56px"
-                                            width="56px"
-                                            viewBox="0 0 56 56"
-                                            class="loader">
+const loader = `
+                <div class="contentLoader">
+                    <svg
+                        aria-label="loader being flipped clockwise and circled by three white curves fading in and out"
+                        role="img"
+                        height="56px"
+                        width="56px"
+                        viewBox="0 0 56 56"
+                        class="loader">
                                             <clipPath id="sand-mound-top">
                                                 <path
                                                     d="M 14.613 13.087 C 15.814 12.059 19.3 8.039 20.3 6.539 C 21.5 4.789 21.5 2.039 21.5 2.039 L 3 2.039 C 3 2.039 3 4.789 4.2 6.539 C 5.2 8.039 8.686 12.059 9.887 13.087 C 11 14.039 12.25 14.039 12.25 14.039 C 12.25 14.039 13.5 14.039 14.613 13.087 Z"
@@ -262,9 +174,97 @@ function processScan(url) {
                                             </g>
                                         </svg>
                                     </div>
-                    `;
+                `;
 
-                    // Enviar registro
+let scannedCode = '';
+let scanTimeout;
+let isScanning = false;
+
+// ESCANEO DE CÓDIGOS QR
+input.addEventListener('input', () => {
+    if(isScanning) return;
+
+    clearTimeout(scanTimeout);
+    scannedCode = input.value.trim();
+
+    scanTimeout = setTimeout(() => {
+        if(scannedCode !== '') {
+            isScanning = true;
+            content.innerHTML = loader;
+
+            processScan(scannedCode);
+            input.value = '';
+        }
+    }, 300);
+});
+
+
+function processScan(url) {
+    fetch(`http://localhost:3000/api/leer-qr?url=${encodeURIComponent(url)}`)
+        .then(response => {
+            if(!response.ok) throw new Error("No se pudo consultar el backend");
+            return response.json();
+        })
+        .then(data => {
+            content.innerHTML = `
+                        <div class="optionsCard">
+                            <div class="title">
+                                <h1>¡Hola ${data.contenido.nombre.split(" ")[0]}!</h1>
+                                <h2>¿QUÉ DESEAS HACER HOY?</h2>
+                            </div>
+
+                            <div class="options">
+                                <div class="cardOpt">
+                                    <div class="cardTitle">Revisión de libro en sala</div>
+                                    <img src="./assets/images/1st.png" alt="First Opt">
+                                </div>
+
+                                <div class="cardOpt">
+                                    <div class="cardTitle">Revisión de libro a domicilio</div>
+                                    <img src="./assets/images/5th.png" alt="Second Opt">
+                                </div>
+
+                                <div class="cardOpt">
+                                    <div class="cardTitle third">Revisión Tesina</div>
+                                    <img src="./assets/images/3rd.png" alt="Third Opt">
+                                </div>
+
+                                <div class="cardOpt">
+                                    <div class="cardTitle">Consulta de revista / periódico</div>
+                                    <img src="./assets/images/2nd.png" alt="Fourth Opt">
+                                </div>
+
+                                <div class="cardOpt">
+                                    <div class="cardTitle third">Sala de Computación</div>
+                                    <img src="./assets/images/4th.png" alt="Fifth Opt">
+                                </div>                                
+                            </div>
+                        </div>                        
+            `;
+                    
+            // Seleccionar todas las tarjetas de opción
+            const options = document.querySelectorAll('.cardOpt');
+
+            options.forEach(option => {
+                option.addEventListener('click', async (e) => {
+                    e.preventDefault();     // Prevenir recarga
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+
+                    const tipo = option.querySelector('.cardTitle').textContent.trim();
+                    const fecha = new Date();
+                    const hora = `${fecha.getHours().toString().padStart(2, '0')}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+                    const payload = {
+                        fecha: fecha.toLocaleDateString('es-MX'),
+                        hora: hora,
+                        nombre: data.contenido.nombre,
+                        noControl: data.contenido.matricula,
+                        carrera: data.contenido.carrera,
+                        tipo: tipo                                
+                    };
+
+                    content.innerHTML = loader;
+
                     try {
                         const response = await fetch('http://localhost:3000/api/guardar-registro', {
                             method: 'POST',
@@ -273,16 +273,17 @@ function processScan(url) {
                         });
 
                         if(!response.ok) throw new Error("Error al guardar el registro");
-                        const result = await response.json();
 
                         // Reiniciar escaneo
                         setTimeout(() => {
+                            isScanning = false;
                             location.reload(); 
                             input.focus();
                             Toast('success', 'BIBLIOPASS' + '\n' + '\n' + '¡Registro exitoso! Puedes pasar.');
                         }, 3000);                                                           
                     } catch (error) {
                         console.error("Error:", error);
+                        isScanning = false;
                         content.innerHTML = `
                             <div class="error">
                                 <h1>Error</h1>
@@ -295,7 +296,8 @@ function processScan(url) {
                 });
             });
         })
-        .catch(err => {
+        .catch(() => {
+            isScanning = false;
             content.innerHTML = `
                 <div class="error">
                     <h1>Error</h1>
@@ -310,8 +312,6 @@ function processScan(url) {
 // Inicializar el foco en el input
 window.addEventListener('click', () => input.focus());
 window.addEventListener('keydown', () => input.focus());
-
-// Enfocar al cargar
 window.onload = () => input.focus();
 
 
